@@ -19,7 +19,7 @@ public:
     /// @brief конструктор от кода 
     /// @param _code  - код
     md5_password(const char* _code) {  
-        char* data = reinterpret_cast<char*>(dig);
+        int* data = reinterpret_cast<int*>(&dig);
         boost::algorithm::unhex(_code, _code + strlen(_code), data);
     }
 
@@ -27,17 +27,17 @@ public:
     /// @param _rhs - ключ спарва от равенства 
     /// @return 
     bool operator==(const md5_password &_rhs) const {
-        const char* dataLhs = reinterpret_cast<const char*>(&dig);
-        const char* dataRhs = reinterpret_cast<const char *>(&(_rhs.dig));
-        return std::equal(dataLhs, dataLhs + sizeof(md5::digest_type), dataRhs);
+        const int* dataLhs = reinterpret_cast<const int*>(&dig);
+        const int* dataRhs = reinterpret_cast<const int*>(&(_rhs.dig));
+        return std::equal(dataLhs, dataLhs +(sizeof(md5::digest_type) / sizeof(int)), dataRhs);
     }
 
     /// @brief перевод ключа md5 в строку в 16-ричной записи 
     /// @return - строка 
     std::string to_string() const {
-        const auto char_digest = reinterpret_cast<const char *>(&dig);
+        const auto intDigest = reinterpret_cast<const int*>(&dig);
         std::string result;
-        boost::algorithm::hex(char_digest, char_digest + sizeof(md5::digest_type), std::back_inserter(result));
+        boost::algorithm::hex(intDigest, intDigest + (sizeof(md5::digest_type)/sizeof(int)), std::back_inserter(result));
         return result;
     }
 
@@ -58,12 +58,9 @@ private:
 };
 
 std::ostream& operator<<(std::ostream& os, const md5_password& _code) {
-    const char* first = reinterpret_cast<const char*>(&_code);
-    const char* last = first + sizeof(md5::digest_type);
     
-    for(; first != last; ++first) {
-        os << std::hex << *first;
-    }
+    os << _code.to_string();
+    
     return os;
 }
 
